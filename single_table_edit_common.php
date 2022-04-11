@@ -883,6 +883,28 @@ function update($link,$tname)
 	}	
 }
 
+
+
+function update_from_array($link,$tname,$post)
+{
+	foreach($post as $k=>$v)
+	{
+		if(!in_array($k,array('action','tname','session_name','id','recording_time','recorded_by')))
+		{
+			//echo $k.'#<br>';
+			update_one_field($link,$tname,$k,$post['id']);
+		}
+	}
+	foreach($_FILES as $k=>$v)
+	{
+		if(!in_array($k,array('action','tname','session_name','id','recording_time','recorded_by')))
+		{
+			update_one_field_blob($link,$tname,$k,$k.'_name',$post['id']);
+		}
+	}	
+}
+
+
 function list_available_tables($link)
 {
 	$sql_level='select distinct level from '.$GLOBALS['record_tables'].' order by level';

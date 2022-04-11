@@ -44,12 +44,87 @@ if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']
 
 if($_POST['action']=='edit')
 {
-	edit_with_readonly($link,'hostel_beds',$_POST['id'],'yes',array('hostel','room_number','allowed_sex','allowed_course', 'bed_number'));
+	edit_with_readonly_view_batch($link,'hostel_beds',$_POST['id'],'yes',array('hostel','room_number','allowed_sex','allowed_course', 'bed_number'));
 	allot_bed($link);
 }
 
 
+if($_POST['action']=='update')
+{
+	if(!update_with_batch($link,'hostel_beds'))
+	{
+		echo '<h3>This student may have been alloted another room</h3>';
+	}
+	else
+	{
+		
+		/*
+		 * start:postArray
+	(
+    [offset] => 200
+    [id] => 203
+    [session_name] => sn_1267647836
+    [action] => update
+    [tname] => hostel_beds
+    [hostel] => Asso. Prof. QTR
+    [room_number] => B9
+    [bed_number] => 5
+    [allowed_sex] => Male
+    [allowed_course] => PG
+    [alloted_to] => 18
+	)
+	
+	CREATE TABLE `transaction` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` bigint(20) NOT NULL,
+  `hostel_bed_id` int(11) NOT NULL,
+  `date_of_transaction` datetime NOT NULL,
+  `in_out` int(11) NOT NULL,
+  `recording_date` datetime NOT NULL,
+  `recorded_by` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `hostel_bed_id` (`hostel_bed_id`),
+  CONSTRAINT `transaction_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
+  CONSTRAINT `transaction_ibfk_2` FOREIGN KEY (`hostel_bed_id`) REFERENCES `hostel_beds` (`id`)
+	) 
 
+		 * */
+		 
+		$sql='insert into transaction (student_id,hostel_bed_id,date_of_transaction,recording_date,recorded_by)
+						values(
+						\''.$_POST['alloted_to'].'\',
+						\''.$_POST['id'].'\',
+						now(),
+						now(),
+						\''.$_SESSION['login'].'\'
+						)
+						 ';
+		echo $sql;
+
+	}
+	allot_bed($link);
+}
+
+
+function update_with_batch($link,$tname)
+{
+	foreach($_POST as $k=>$v)
+	{
+		if(!in_array($k,array('action','tname','session_name','id','recording_time','recorded_by','offset')))
+		{
+			//echo $k.'#<br>';
+			update_one_field($link,$tname,$k,$_POST['id']);
+		}
+	}
+	foreach($_FILES as $k=>$v)
+	{
+		if(!in_array($k,array('action','tname','session_name','id','recording_time','recorded_by','offset')))
+		{
+			update_one_field_blob($link,$tname,$k,$k.'_name',$_POST['id']);
+		}
+	}	
+}
 
 function show_button($tname,$type,$label='')
 {
@@ -87,6 +162,10 @@ function allot_bed($link)
 		{
 			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
 		}
+		else
+		{
+			$offset=$_POST['offset'];
+		}
 	}
 	else
 	{
@@ -105,7 +184,7 @@ function allot_bed($link)
 	echo '</table>';
 }
 
-function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_array=array(),$offset)
+function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_array=array())
 {
 	$sql='select * FROM `'.$tname.'` where id=\''.$pk.'\'';
 	//echo $sql;
@@ -200,6 +279,41 @@ function allot_bed_with_edit($link,$id)
 }
 
 
+function ste_id_edit_button_with_offset($link,$tname,$id)
+{
+	if(isset($_POST['offset']))
+	{
+		if($_POST['action']=='previous')
+		{
+			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']);
+		}
+		else if($_POST['action']=='next')
+		{
+			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
+		}
+		else
+		{
+			$offset=$_POST['offset'];
+		}
+	}
+	else
+	{
+		$offset=0;
+	}
+	
+	echo 
+	'<div class="d-inline-block" >
+		<form method=post>
+			<button class="btn btn-outline-success btn-sm m-0 p-0" name=id value=\''.$id.'\' >
+				<img class="m-0 p-0" src=img/edit.png alt=E width="25" height="25">
+			</button>
+			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+			<input type=hidden name=action value=edit>
+			<input type=hidden name=tname value=\''.$tname.'\'>
+			<input type=hidden name=offset value=\''.$offset.'\'>
+		</form>
+	</div>';
+}
 
 function view_rows_for_allotment($link,$ar)
 {
@@ -209,7 +323,7 @@ function view_rows_for_allotment($link,$ar)
 		{
 			echo '<td>';
 			echo '<span class="round round-0 bg-warning" >'.$v.'</span>';
-			ste_id_edit_button($link,'hostel_beds',$v);
+			ste_id_edit_button_with_offset($link,'hostel_beds',$v);
 			echo '</td>';
 		}
 		else
