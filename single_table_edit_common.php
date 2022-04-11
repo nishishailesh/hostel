@@ -275,13 +275,11 @@ function select_with_condition($link,$tname,$join='and',$condition,$order_str=''
 	echo '</table>';
 }
 
-function select($link,$tname,$join='and')
+function select($link,$tname,$join='and',$order_by='')
 {
 	//echo '<pre>';print_r($_POST);echo '</pre>';	
 	$sql='select id from `'.$tname.'` where ';
 	$w='';
-	$ord=' order by ';
-	$ord_base_len=strlen($ord);
 	foreach($_POST  as $k=>$v)
 	{
 		if(!in_array($k,array('action','tname','session_name')))
@@ -289,13 +287,9 @@ function select($link,$tname,$join='and')
 			if(strlen($v)>0)
 			{
     			$w=$w.' `'.$k.'` like \'%'.$v.'%\' '.$join.' ';
-				$ord=$ord.' `'.$k.'` , ';
 			}
 		}
 	}
-	
-	if(strlen($ord)>$ord_base_len){$ord=substr($ord,0,-2);}
-	else{$ord='';}
 	
 	if(strlen($w)>0)
 	{
@@ -307,12 +301,12 @@ function select($link,$tname,$join='and')
 		{
 			$w=substr($w,0,-3);
 		}
-		$sql=$sql.$w.' order by id desc ';
+		$sql=$sql.$w.' '.$order_by;
 	}
 	else
 	{
 		//$sql='select id from `'.$tname.'` order by id desc limit '.$GLOBALS['all_records_limit'];
-		$sql='select id from `'.$tname.'` '.$ord.' limit '.$GLOBALS['all_records_limit'];
+		$sql='select id from `'.$tname.'` limit '.$GLOBALS['all_records_limit'];
 	}
 	
 	//echo $sql;

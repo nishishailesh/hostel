@@ -29,8 +29,105 @@ echo '<style>
 }
 </style>';
 
-//required to show student details when delete
 
+//show_crud_button('hostel_beds','search');
+//show_crud_button('hostel_beds','list');
+
+//show_button('hostel_beds','show_empty_beds','Show Empty Beds');
+show_button('hostel_beds','allot_bed','Allot/Empty Bed');
+
+
+if($_POST['action']='allot_bed')
+{
+	allot_bed($link);
+}
+
+
+
+function show_button($tname,$type,$label='')
+{
+	if(strlen($label)==0){$label=$type;}
+	echo '<div class="d-inline-block" ><form method=post class=print_hide>
+	<button class="btn btn-outline-primary btn-sm" name=action value=\''.$type.'\' >'.$label.'</button>
+	<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+	<input type=hidden name=tname value=\''.$tname.'\'>
+	</form></div>';
+}
+
+
+
+
+function allot_bed($link)
+{
+	//echo '<pre>';print_r($_POST);echo '</pre>';	
+	$sql='select * from hostel_beds';
+
+	$result=run_query($link,$GLOBALS['database'],$sql);
+	$all_fields=array();
+	$header='yes';
+	echo '<table class="table table-striped table-sm table-bordered">';
+	while($ar=get_single_row($result))
+	{	
+		view_rows_for_allotment($link,$ar);
+	}		
+	echo '</table>';
+}
+
+
+
+
+function view_rows_for_allotment($link,$ar)
+{
+	foreach($ar as $k =>$v)
+	{
+		if($k=='id')
+		{
+			echo '<td>';
+			echo '<span class="round round-0 bg-warning" >'.$v.'</span>';
+			echo '</td>';
+		}
+		else
+		{
+			echo '<td>';
+			$fspec=get_field_spec($link,'hostel_beds',$k);
+			if($fspec!==null)
+			{
+				if($fspec['ftype']=='dtable')
+				{
+					$sql='select 
+					distinct `'.$fspec['field'].'` , 
+						concat_ws("|",'.$fspec['field_description'].') as description
+					from `'.$fspec['table'].'` where id=\''.$v.'\'';
+					//echo $sql;
+					$result=run_query($link,$GLOBALS['database'],$sql);
+					$ar_spec=get_single_row($result);
+					if($ar_spec!==null)
+					{
+						//mk_select_from_sql_with_description($link,$sql,
+						//	$fspec['field'],$fspec['fname'],$fspec['fname'],'',$v,$blank='yes');
+						echo '<pre>'.$ar_spec['description'].'('.htmlentities($v).')</pre></td>';
+					}
+					else
+					{
+						echo '<pre>('.htmlentities($v).')</pre></td>';
+					}
+				}
+				else
+				{
+					echo '<pre>'.htmlentities($v).'</pre></td>';
+				}
+			}
+			else
+			{
+				echo '<pre>'.htmlentities($v).'</pre></td>';
+			}
+		}
+	}
+	echo '</tr>';
+}
+
+//required to show student details when delete
+/*
 if(isset($_POST['tname']))
 {
 	if($_POST['tname']=='bed_allocation' && $_POST['action']=='delete')
@@ -38,36 +135,16 @@ if(isset($_POST['tname']))
 		$_POST['student_id']=isset($_POST['student_id'])?$_POST['student_id']:get_student_id($link,$_POST['id']);
 	}
 }
-
-show_manage_single_table_button('student','Manage Students');
-show_manage_single_table_button('hostel_beds','Manage Beds');
-
-single_table_button_with_action('bed_allocation','View Student History','search');
-
-/*
-echo '<div class="two-two">';
-	echo '<div>';
-		echo '<h4>Available Hostel Beds</h4>';
-		add_direct($link,'hostel_beds',$header='no');
-	echo '</div>';
-	echo '<div>';
-		echo '<h4>Students</h4>';
-		add_direct($link,'student',$header='no');
-	echo '</div>';
-echo '</div>';
-
-echo '<div class="two-two">';
-	echo '<div>';
-		echo '<h4>Hostel Beds Allocation</h4>';
-		add_direct($link,'bed_allocation',$header='no');
-	echo '</div>';
-	echo '<div>';
-		echo '<h4>History</h4>';
-		add_direct($link,'bed_allocation',$header='no');
-	echo '</div>';	
-echo '</div>';
 */
 
+
+
+//show_manage_single_table_button('student','Manage Students');
+//show_manage_single_table_button('hostel_beds','Manage Beds');
+
+//single_table_button_with_action('bed_allocation','View Student History','search');
+
+/*
 if($_POST['action']=='save_insert' &&  $_POST['tname'] == 'bed_allocation')
 {
 	if(function_exists('__f__validate_insert_hostel_beds'))
@@ -111,7 +188,7 @@ if(in_array($_POST['action'],array('update','display_search','delete')) && in_ar
 	select_with_condition($link,'bed_allocation',$join='and',array('student_id'=>$_POST['student_id']), ' order by date_of_allocation ');
 	add_direct_with_default($link,'bed_allocation','yes',array('student_id'=>$_POST['student_id']),array('student_id'=>'readonly'));
 }
-
+*/
 //////////////user code ends////////////////
 tail();
 echo '<pre>start:post';print_r($_POST);echo '</pre>';
