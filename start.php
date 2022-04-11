@@ -37,10 +37,17 @@ echo '<style>
 show_button('hostel_beds','allot_bed','Allot/Empty Bed');
 
 
-if($_POST['action']='allot_bed')
+if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']=='previous')
 {
 	allot_bed($link);
 }
+
+if($_POST['action']=='edit')
+{
+	edit_with_readonly($link,'hostel_beds',$_POST['id'],'yes',array('hostel','room_number','allowed_sex','allowed_course', 'bed_number'));
+	allot_bed($link);
+}
+
 
 
 
@@ -55,16 +62,41 @@ function show_button($tname,$type,$label='')
 }
 
 
-
+function updown_data($offset)
+{
+	echo '<form method=post>';
+		echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
+		echo '<input type=hidden name=offset value=\''.$offset.'\'>';
+		echo '<button type=submit name=action value=previous><</button>';
+		echo '<button type=submit name=action value=next>></button>';
+	echo '</form>';
+}
 
 function allot_bed($link)
 {
 	//echo '<pre>';print_r($_POST);echo '</pre>';	
-	$sql='select * from hostel_beds';
 
+
+	if(isset($_POST['offset']))
+	{
+		if($_POST['action']=='previous')
+		{
+			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']);
+		}
+		else if($_POST['action']=='next')
+		{
+			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
+		}
+	}
+	else
+	{
+		$offset=0;
+	}
+	updown_data($offset);
+	$sql='select * from hostel_beds limit '.$offset.','.$GLOBALS['all_records_limit'];
+	echo $sql;
 	$result=run_query($link,$GLOBALS['database'],$sql);
-	$all_fields=array();
-	$header='yes';
+	
 	echo '<table class="table table-striped table-sm table-bordered">';
 	while($ar=get_single_row($result))
 	{	
@@ -73,6 +105,99 @@ function allot_bed($link)
 	echo '</table>';
 }
 
+function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_array=array(),$offset)
+{
+	$sql='select * FROM `'.$tname.'` where id=\''.$pk.'\'';
+	//echo $sql;
+	$result=run_query($link,$GLOBALS['database'],$sql);
+	$ar=get_single_row($result);
+	
+	echo '<form method=post class="d-inline" enctype="multipart/form-data">';
+	echo '<input type=hidden name=offset value=\''.$_POST['offset'].'\'>';
+
+	echo '<div class="two_column_one_by_two bg-light">';
+			foreach($ar as $k =>$v)
+			{
+				if($k=='id')
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						ste_id_update_button($link,$tname,$v);
+					echo '</div>';
+				}
+				elseif(substr(get_field_type($link,$tname,$k),-4)=='blob')
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						echo '<input type=file name=\''.$k.'\' >';
+					echo '</div>';
+				}
+				elseif(in_array($k,array('recording_time','recorded_by')))
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						echo $v;
+					echo '</div>';
+				}
+				elseif(in_array($k,$readonly_array))
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+					echo '<input class="w-100" type=text  readonly name=\''.$k.'\' value=\''.htmlentities($v,ENT_QUOTES).'\'>';
+					echo '</div>';
+				}
+				else
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						read_field($link,$tname,$k,$v);
+					echo '</div>';
+				}
+			}
+			echo '</div>';
+	echo'</form>';
+
+}
+
+function allot_bed_with_edit($link,$id)
+{
+	//echo '<pre>';print_r($_POST);echo '</pre>';	
+
+
+	if(isset($_POST['offset']))
+	{
+		if($_POST['action']=='previous')
+		{
+			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']);
+		}
+		else if($_POST['action']=='next')
+		{
+			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
+		}
+	}
+	else
+	{
+		$offset=0;
+	}
+	updown_data($offset);
+	$sql='select * from hostel_beds limit '.$offset.','.$GLOBALS['all_records_limit'];
+	echo $sql;
+	$result=run_query($link,$GLOBALS['database'],$sql);
+	
+	echo '<table class="table table-striped table-sm table-bordered">';
+	while($ar=get_single_row($result))
+	{	
+		if($ar['id']!=$id)
+		{
+			view_rows_for_allotment($link,$ar);
+		}
+		else
+		{
+			edit_with_readonly($link,'hostel_beds',$id,'yes',array('hostel','room_number','allowed_sex','allowed_course', 'bed_number'));
+		}
+	}		
+	echo '</table>';
+}
 
 
 
@@ -84,6 +209,7 @@ function view_rows_for_allotment($link,$ar)
 		{
 			echo '<td>';
 			echo '<span class="round round-0 bg-warning" >'.$v.'</span>';
+			ste_id_edit_button($link,'hostel_beds',$v);
 			echo '</td>';
 		}
 		else
@@ -125,6 +251,8 @@ function view_rows_for_allotment($link,$ar)
 	}
 	echo '</tr>';
 }
+
+
 
 //required to show student details when delete
 /*

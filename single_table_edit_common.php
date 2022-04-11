@@ -367,6 +367,60 @@ function ste_id_update_button($link,$tname,$id)
 	</div>';
 }
 
+function edit_with_readonly($link,$tname,$pk,$header='no',$readonly_array=array())
+{
+	$sql='select * FROM `'.$tname.'` where id=\''.$pk.'\'';
+	//echo $sql;
+	$result=run_query($link,$GLOBALS['database'],$sql);
+	$ar=get_single_row($result);
+	
+	echo '<form method=post class="d-inline" enctype="multipart/form-data">';
+	echo '<div class="two_column_one_by_two bg-light">';
+			foreach($ar as $k =>$v)
+			{
+				if($k=='id')
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						ste_id_update_button($link,$tname,$v);
+					echo '</div>';
+				}
+				elseif(substr(get_field_type($link,$tname,$k),-4)=='blob')
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						echo '<input type=file name=\''.$k.'\' >';
+					echo '</div>';
+				}
+				elseif(in_array($k,array('recording_time','recorded_by')))
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						echo $v;
+					echo '</div>';
+				}
+				elseif(in_array($k,$readonly_array))
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+					echo '<input class="w-100" type=text  readonly name=\''.$k.'\' value=\''.htmlentities($v,ENT_QUOTES).'\'>';
+					echo '</div>';
+				}
+				else
+				{
+					echo '<div class="border">'.$k.'</div>';
+					echo '<div class="border">';
+						read_field($link,$tname,$k,$v);
+					echo '</div>';
+				}
+			}
+			echo '</div>';
+	echo'</form>';
+
+}
+
+
+
 function edit($link,$tname,$pk,$header='no')
 {
 	$sql='select * FROM `'.$tname.'` where id=\''.$pk.'\'';
@@ -411,7 +465,6 @@ function edit($link,$tname,$pk,$header='no')
 	echo'</form>';
 
 }
-
 
 
 function add_direct($link,$tname,$header='no')
