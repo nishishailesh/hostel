@@ -45,68 +45,68 @@ if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']
 if($_POST['action']=='edit')
 {
 	edit_with_readonly_view_batch($link,'hostel_beds',$_POST['id'],'yes',array('hostel','room_number','allowed_sex','allowed_course', 'bed_number'));
+	show_history($link,$_POST['id']);
 	allot_bed($link);
 }
 
 
 if($_POST['action']=='update')
 {
-	if(!update_with_batch($link,'hostel_beds'))
+	if(strlen($_POST['alloted_to'])==0)
 	{
-		echo '<h3>This student may have been alloted another room</h3>';
+		$usql='update hostel_beds set alloted_to=null where id=\''.$_POST['id'].'\'';
 	}
 	else
 	{
+		$usql='update hostel_beds set alloted_to=\''.$_POST['alloted_to'].'\' where id=\''.$_POST['id'].'\'';
 		
-		/*
-		 * start:postArray
-	(
-    [offset] => 200
-    [id] => 203
-    [session_name] => sn_1267647836
-    [action] => update
-    [tname] => hostel_beds
-    [hostel] => Asso. Prof. QTR
-    [room_number] => B9
-    [bed_number] => 5
-    [allowed_sex] => Male
-    [allowed_course] => PG
-    [alloted_to] => 18
-	)
-	
-	CREATE TABLE `transaction` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `student_id` bigint(20) NOT NULL,
-  `hostel_bed_id` int(11) NOT NULL,
-  `date_of_transaction` datetime NOT NULL,
-  `in_out` int(11) NOT NULL,
-  `recording_date` datetime NOT NULL,
-  `recorded_by` bigint(20) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `student_id` (`student_id`),
-  KEY `hostel_bed_id` (`hostel_bed_id`),
-  CONSTRAINT `transaction_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
-  CONSTRAINT `transaction_ibfk_2` FOREIGN KEY (`hostel_bed_id`) REFERENCES `hostel_beds` (`id`)
-	) 
+	}
 
-		 * */
-		 
-		$sql='insert into transaction (student_id,hostel_bed_id,date_of_transaction,recording_date,recorded_by)
+	if(!$result=run_query($link,$GLOBALS['database'],$usql))
+	{
+		echo '<h3>This student may have been alloted another room. No change. Transaction not recorded</h3>';
+	}
+	else if(rows_affected($link)==0)
+	{
+		echo '<h3>No change. Transaction not recorded</h3>';
+	}
+	else
+	{
+		$ato=is_str_empty($_POST['alloted_to'])?' null ':$_POST['alloted_to'];	
+		$tsql='insert into transaction (student_id,hostel_bed_id,date_of_transaction,recording_date,recorded_by)
 						values(
-						\''.$_POST['alloted_to'].'\',
+						'. $ato .',
 						\''.$_POST['id'].'\',
 						now(),
 						now(),
 						\''.$_SESSION['login'].'\'
-						)
-						 ';
-		echo $sql;
-
+						)';
+		//echo $tsql;
+		$tresult=run_query($link,$GLOBALS['database'],$tsql);
 	}
+	
 	allot_bed($link);
 }
 
 
+function show_history($link,$hostel_bed_id)
+{
+	$sql='select * from hostel_beds where id=\''.$hostel_bed_id.'\'';
+	$result=run_query($link,$GLOBALS['database'],$sql);
+	$ar=get_single_row($result);
+	$ssql='select *  from transaction where student_id=\''.$ar['alloted_to'].'\' order by date_of_transaction';
+	view_sql_result_as_table($link,$ssql);
+	$hsql='select *  from transaction where hostel_bed_id=\''.$ar['id'].'\'  order by date_of_transaction';
+	view_sql_result_as_table($link,$hsql);
+	
+}
+
+
+function is_str_empty($str)
+{
+	if(strlen($str)==0){return true;}
+	else{return false;}
+}
 function update_with_batch($link,$tname)
 {
 	foreach($_POST as $k=>$v)
@@ -173,7 +173,7 @@ function allot_bed($link)
 	}
 	updown_data($offset);
 	$sql='select * from hostel_beds limit '.$offset.','.$GLOBALS['all_records_limit'];
-	echo $sql;
+	//echo $sql;
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	
 	echo '<table class="table table-striped table-sm table-bordered">';

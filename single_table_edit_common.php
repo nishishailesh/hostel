@@ -221,6 +221,60 @@ function search($link,$tname)
 	echo '</form>';
 }
 
+
+function view_sql_result_as_table($link,$sql,$show_hide='yes')
+{
+	if(!$result=run_query($link,$GLOBALS['database'],$sql))
+	{
+		 echo '<h1>Problem</h1>';
+		 return false;
+	}
+	display_sql_result_data($result,$show_hide);
+}
+
+	
+function display_sql_result_data($result,$show_hide='yes')
+{
+	if($show_hide=='yes')
+	{
+		echo '<button data-toggle="collapse" data-target="#sql_result" class="btn btn-dark">Show/Hide Result</button>';
+		echo '<div id="sql_result" class="collapse show">';		
+	}
+		
+	
+       echo '<table border=1 class="table-striped table-hover">';
+				
+        $first_data='yes';
+
+        while($array=get_single_row($result))
+        {
+			//echo '<pre>';
+			//print_r($array);
+                if($first_data=='yes')
+                {
+                        echo '<tr bgcolor=lightgreen>';
+                        foreach($array as $key=>$value)
+                        {
+                                echo '<th>'.$key.'</th>';
+                        }
+                        echo '</tr>';
+                        $first_data='no';
+                }
+                echo '<tr>';
+                foreach($array as $key=>$value)
+                {
+                        echo '<td>'.$value.'</td>';
+                }
+                echo '</tr>';
+
+        }
+        echo '</table>';	
+	echo '</div>';	
+	
+}
+//111119500892
+//one
+
 function select_with_condition($link,$tname,$join='and',$condition,$order_str='')
 {
 	//echo '<pre>';print_r($_POST);echo '</pre>';	
