@@ -58,6 +58,7 @@ if($_POST['action']=='update')
 	}
 	else
 	{
+		
 		$usql='update hostel_beds set alloted_to=\''.$_POST['alloted_to'].'\' where id=\''.$_POST['id'].'\'';
 		
 	}
