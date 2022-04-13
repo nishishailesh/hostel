@@ -51,41 +51,64 @@ if($_POST['action']=='edit')
 
 
 if($_POST['action']=='update')
-{
+{			
+	$chk_sql='select * from hostel_beds where id=\''.$_POST['id'].'\'';
+	$chk_result=run_query($link,$GLOBALS['database'],$chk_sql);
+	$chk_ar=get_single_row($chk_result);
+
 	if(strlen($_POST['alloted_to'])==0)
 	{
 		$usql='update hostel_beds set alloted_to=null where id=\''.$_POST['id'].'\'';
 	}
+	else if($chk_ar['alloted_to']==$_POST['alloted_to'])
+	{
+		$usql='update hostel_beds set alloted_to=\''.$_POST['alloted_to'].'\'  , last_allotment_date=\''.$_POST['last_allotment_date'].'\' where id=\''.$_POST['id'].'\'';
+	}
 	else
 	{
-		
-		$usql='update hostel_beds set alloted_to=\''.$_POST['alloted_to'].'\' where id=\''.$_POST['id'].'\'';
-		
+			if($chk_ar['alloted_to']==null)
+			{
+				$usql='update hostel_beds set alloted_to=\''.$_POST['alloted_to'].'\'  , last_allotment_date=\''.$_POST['last_allotment_date'].'\' where id=\''.$_POST['id'].'\'';
+			}
+			else
+			{
+				$usql=false;
+				echo '<h3>Hostel Bed ID '.$chk_ar['id'].' is not vacant. Vacant it first then, try again</h3>';
+			}
 	}
 
-	if(!$result=run_query($link,$GLOBALS['database'],$usql))
+	echo '$usql:'.$usql;
+	
+	if($usql!=false)
 	{
-		echo '<h3>This student may have been alloted another room. No change. Transaction not recorded</h3>';
-	}
-	else if(rows_affected($link)==0)
-	{
-		echo '<h3>No change. Transaction not recorded</h3>';
-	}
-	else
-	{
+		if(!$result=run_query($link,$GLOBALS['database'],$usql))
+		{
+			echo '<h3>This student may have been alloted another room. No change. Transaction not recorded</h3>';
+			$duplicate_sql='select * from hostel_beds where alloted_to=\''.$_POST['alloted_to'].'\'';
+			$duplicate_result=run_query($link,$GLOBALS['database'],$duplicate_sql);
+			$ar=get_single_row($duplicate_result);
+			print_r($ar);
+			echo '<h3>Hostel Bed ID '.$ar['id'].' is alloted to student_id '.$ar['alloted_to'].'</h3>';
+		}
+		else if(rows_affected($link)==0)
+		{
+			echo '<h3>No change. Transaction not recorded</h3>';
+		}
+		else
+		{
 		$ato=is_str_empty($_POST['alloted_to'])?' null ':$_POST['alloted_to'];	
-		$tsql='insert into transaction (student_id,hostel_bed_id,date_of_transaction,recording_date,recorded_by)
+		$tsql='insert into transaction (student_id,hostel_bed_id,date_of_allotment,recording_date,recorded_by)
 						values(
 						'. $ato .',
 						\''.$_POST['id'].'\',
-						now(),
+						\''.$_POST['last_allotment_date'].'\',
 						now(),
 						\''.$_SESSION['login'].'\'
 						)';
 		//echo $tsql;
 		$tresult=run_query($link,$GLOBALS['database'],$tsql);
+		}
 	}
-	
 	allot_bed($link);
 }
 
@@ -95,9 +118,9 @@ function show_history($link,$hostel_bed_id)
 	$sql='select * from hostel_beds where id=\''.$hostel_bed_id.'\'';
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	$ar=get_single_row($result);
-	$ssql='select *  from transaction where student_id=\''.$ar['alloted_to'].'\' order by date_of_transaction';
+	$ssql='select *  from transaction where student_id=\''.$ar['alloted_to'].'\' order by date_of_allotment';
 	view_sql_result_as_table($link,$ssql);
-	$hsql='select *  from transaction where hostel_bed_id=\''.$ar['id'].'\'  order by date_of_transaction';
+	$hsql='select *  from transaction where hostel_bed_id=\''.$ar['id'].'\'  order by date_of_allotment';
 	view_sql_result_as_table($link,$hsql);
 	
 }
@@ -178,8 +201,19 @@ function allot_bed($link)
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	
 	echo '<table class="table table-striped table-sm table-bordered">';
+	$first=true;
 	while($ar=get_single_row($result))
 	{	
+		if($first==true)
+		{
+			echo '<tr>';
+			foreach ($ar as $k=>$v)
+			{
+				echo '<th>'.$k.'</th>';
+			}
+			echo '</tr>';
+			$first=false;
+		}
 		view_rows_for_allotment($link,$ar);
 	}		
 	echo '</table>';

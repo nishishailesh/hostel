@@ -6,7 +6,7 @@ $GLOBALS['user_id']='user';
 $GLOBALS['user_pass']='password';
 $GLOBALS['expiry_period']='+ 6 months';
 $GLOBALS['expirydate_field']='expirydate';
-$GLOBALS['application_name']='New Civil Hospital Surat Laboratory Services';
+$GLOBALS['application_name']='GMCS Hostel Management';
 
 $GLOBALS['database']='hostel';
 $GLOBALS['record_tables']='record_tables';
