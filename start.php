@@ -77,17 +77,21 @@ if($_POST['action']=='update')
 			}
 	}
 
-	echo '$usql:'.$usql;
+	//echo '$usql:'.$usql;
 	
 	if($usql!=false)
 	{
 		if(!$result=run_query($link,$GLOBALS['database'],$usql))
 		{
-			echo '<h3>This student may have been alloted another room. No change. Transaction not recorded</h3>';
+			echo '<h2>Error:(Possible Reasons)</h2>';
+			echo '<ol>
+					<li>This student may have been alloted another room. Vacate that room.</li>
+					<li>Date of allotment not entered</li>
+				</ol>';
 			$duplicate_sql='select * from hostel_beds where alloted_to=\''.$_POST['alloted_to'].'\'';
 			$duplicate_result=run_query($link,$GLOBALS['database'],$duplicate_sql);
 			$ar=get_single_row($duplicate_result);
-			print_r($ar);
+			//print_r($ar);
 			echo '<h3>Hostel Bed ID '.$ar['id'].' is alloted to student_id '.$ar['alloted_to'].'</h3>';
 		}
 		else if(rows_affected($link)==0)
@@ -118,10 +122,12 @@ function show_history($link,$hostel_bed_id)
 	$sql='select * from hostel_beds where id=\''.$hostel_bed_id.'\'';
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	$ar=get_single_row($result);
+	echo '<h3>Student History</h3>';
 	$ssql='select *  from transaction where student_id=\''.$ar['alloted_to'].'\' order by date_of_allotment';
-	view_sql_result_as_table($link,$ssql);
+	view_sql_result_as_table($link,$ssql,'hide');
 	$hsql='select *  from transaction where hostel_bed_id=\''.$ar['id'].'\'  order by date_of_allotment';
-	view_sql_result_as_table($link,$hsql);
+	echo '<h3>Hostel Bed History</h3>';
+	view_sql_result_as_table($link,$hsql,'hide');
 	
 }
 
