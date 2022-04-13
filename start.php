@@ -37,7 +37,7 @@ echo '<style>
 show_button('hostel_beds','allot_bed','Allot/Empty Bed');
 
 
-if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']=='previous')
+if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']=='previous'|| $_POST['action']=='nnext' || $_POST['action']=='pprevious')
 {
 	allot_bed($link);
 }
@@ -172,8 +172,10 @@ function updown_data($offset)
 	echo '<form method=post>';
 		echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
 		echo '<input type=hidden name=offset value=\''.$offset.'\'>';
+		echo '<button type=submit name=action value=pprevious><<</button>';
 		echo '<button type=submit name=action value=previous><</button>';
 		echo '<button type=submit name=action value=next>></button>';
+		echo '<button type=submit name=action value=nnext>>></button>';
 	echo '</form>';
 }
 
@@ -192,6 +194,14 @@ function allot_bed($link)
 		{
 			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
 		}
+		else if($_POST['action']=='pprevious')
+		{
+			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']*5);
+		}
+		else if($_POST['action']=='nnext')
+		{
+			$offset=$_POST['offset']+$GLOBALS['all_records_limit']*5;
+		}		
 		else
 		{
 			$offset=$_POST['offset'];
