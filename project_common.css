@@ -130,6 +130,12 @@
   grid-template-columns: auto auto;
 }
 
+.four_column 
+{
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+}
+
 .two_column_one_by_two
 {
   display: grid;
