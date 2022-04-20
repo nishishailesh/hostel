@@ -235,24 +235,19 @@ function view_sql_result_as_table($link,$sql,$show_hide='yes')
 	
 function display_sql_result_data($result,$show_hide='yes')
 {
-	echo '<div>';	
-	
 	if($show_hide=='yes')
 	{
 		echo '<button data-toggle="collapse" data-target="#sql_result" class="btn btn-dark">Show/Hide Result</button>';
 		echo '<div id="sql_result" class="collapse show">';		
 	}
-	else
-	{
-		echo '<div>';	
-	}
+		
 	
        echo '<table border=1 class="table-striped table-hover">';
-					
-			$first_data='yes';
+				
+        $first_data='yes';
 
-			while($array=get_single_row($result))
-			{
+        while($array=get_single_row($result))
+        {
 			//echo '<pre>';
 			//print_r($array);
                 if($first_data=='yes')
@@ -266,14 +261,14 @@ function display_sql_result_data($result,$show_hide='yes')
                         $first_data='no';
                 }
                 echo '<tr>';
-                foreach($array as $k=>$v)
+                foreach($array as $key=>$value)
                 {
-                        echo '<td>'.$v.'</td>';    
+                        echo '<td>'.$value.'</td>';
                 }
                 echo '</tr>';
+
         }
         echo '</table>';	
-		echo '</div>';
 	echo '</div>';	
 	
 }

@@ -34,37 +34,22 @@ echo '<style>
 //show_crud_button('hostel_beds','list');
 
 //show_button('hostel_beds','show_empty_beds','Show Empty Beds');
-//show_button('hostel_beds','allot_bed','Allot/Empty Bed');
+show_button('hostel_beds','allot_bed','Allot/Empty Bed');
 
-	if(isset($_POST['offset']))
-	{
-		if($_POST['action']=='previous')
-		{
-			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']);
-		}
-		else if($_POST['action']=='next')
-		{
-			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
-		}
-		else if($_POST['action']=='pprevious')
-		{
-			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']*5);
-		}
-		else if($_POST['action']=='nnext')
-		{
-			$offset=$_POST['offset']+$GLOBALS['all_records_limit']*5;
-		}		
-		else
-		{
-			$offset=$_POST['offset'];
-		}
-	}
-	else
-	{
-		$offset=0;
-	}
-	
-	
+
+if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']=='previous')
+{
+	allot_bed($link);
+}
+
+if($_POST['action']=='edit')
+{
+	edit_with_readonly_view_batch($link,'hostel_beds',$_POST['id'],'yes',array('hostel','room_number','allowed_sex','allowed_course', 'bed_number'));
+	show_history($link,$_POST['id']);
+	allot_bed($link);
+}
+
+
 if($_POST['action']=='update')
 {			
 	$chk_sql='select * from hostel_beds where id=\''.$_POST['id'].'\'';
@@ -73,10 +58,7 @@ if($_POST['action']=='update')
 
 	if(strlen($_POST['alloted_to'])==0)
 	{
-		$usql='update hostel_beds set 
-						alloted_to=null ,
-						last_allotment_date=\''.$_POST['last_allotment_date'].'\'
-						where id=\''.$_POST['id'].'\'';
+		$usql='update hostel_beds set alloted_to=null where id=\''.$_POST['id'].'\'';
 	}
 	else if($chk_ar['alloted_to']==$_POST['alloted_to'])
 	{
@@ -91,33 +73,26 @@ if($_POST['action']=='update')
 			else
 			{
 				$usql=false;
-				echo '<h3 class="text-success">Hostel Bed ID '.$chk_ar['id'].' is not vacant. Vacant it first then, try again</h3>';
+				echo '<h3>Hostel Bed ID '.$chk_ar['id'].' is not vacant. Vacant it first then, try again</h3>';
 			}
 	}
 
-	//echo '$usql:'.$usql;
+	echo '$usql:'.$usql;
 	
 	if($usql!=false)
 	{
 		if(!$result=run_query($link,$GLOBALS['database'],$usql))
 		{
-			echo '<h4 class="text-success">Error:(Possible Reasons)</h4>';
-			echo '<ol class="text-danger">
-					<li>This student may have been alloted another room. Vacate that room.</li>
-					<li>Date of allotment not entered</li>
-				</ol>';
+			echo '<h3>This student may have been alloted another room. No change. Transaction not recorded</h3>';
 			$duplicate_sql='select * from hostel_beds where alloted_to=\''.$_POST['alloted_to'].'\'';
 			$duplicate_result=run_query($link,$GLOBALS['database'],$duplicate_sql);
 			$ar=get_single_row($duplicate_result);
-			if($ar)
-			{
-				//print_r($ar);
-				echo '<h3>Hostel Bed ID '.$ar['id'].' is alloted to student_id '.$ar['alloted_to'].'</h3>';
-			}
+			print_r($ar);
+			echo '<h3>Hostel Bed ID '.$ar['id'].' is alloted to student_id '.$ar['alloted_to'].'</h3>';
 		}
 		else if(rows_affected($link)==0)
 		{
-			echo '<h3 class="text-success">No change. Transaction not recorded</h3>';
+			echo '<h3>No change. Transaction not recorded</h3>';
 		}
 		else
 		{
@@ -134,21 +109,8 @@ if($_POST['action']=='update')
 		$tresult=run_query($link,$GLOBALS['database'],$tsql);
 		}
 	}
+	allot_bed($link);
 }
-
-//if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']=='previous'|| $_POST['action']=='nnext' || $_POST['action']=='pprevious')
-//{
-//	allot_bed($link);
-//}
-
-if($_POST['action']=='edit')
-{
-	edit_with_readonly_view_batch($link,'hostel_beds',$_POST['id'],'yes',array('hostel','room_number','allowed_sex','allowed_course', 'bed_number'));
-	show_history($link,$_POST['id']);
-}
-
-allot_bed($link,$offset);
-
 
 
 function show_history($link,$hostel_bed_id)
@@ -156,18 +118,11 @@ function show_history($link,$hostel_bed_id)
 	$sql='select * from hostel_beds where id=\''.$hostel_bed_id.'\'';
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	$ar=get_single_row($result);
-	echo '<div class="two_column">';
-		echo '<div>';
-			echo '<h3 class="bg-info">Student History</h3>';
-			$ssql='select *  from transaction where student_id=\''.$ar['alloted_to'].'\' order by date_of_allotment';
-			view_sql_result_as_table($link,$ssql,'hide');
-		echo '</div>';
-		echo '<div>';
-			$hsql='select *  from transaction where hostel_bed_id=\''.$ar['id'].'\'  order by date_of_allotment';
-			echo '<h3 class="bg-warning">Hostel Bed History</h3>';
-			view_sql_result_as_table($link,$hsql,'hide');
-		echo '</div>';
-	echo '</div>';
+	$ssql='select *  from transaction where student_id=\''.$ar['alloted_to'].'\' order by date_of_allotment';
+	view_sql_result_as_table($link,$ssql);
+	$hsql='select *  from transaction where hostel_bed_id=\''.$ar['id'].'\'  order by date_of_allotment';
+	view_sql_result_as_table($link,$hsql);
+	
 }
 
 
@@ -211,26 +166,36 @@ function updown_data($offset)
 	echo '<form method=post>';
 		echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
 		echo '<input type=hidden name=offset value=\''.$offset.'\'>';
-		echo '<button type=submit name=action value=pprevious><<</button>';
 		echo '<button type=submit name=action value=previous><</button>';
 		echo '<button type=submit name=action value=next>></button>';
-		echo '<button type=submit name=action value=nnext>>></button>';
 	echo '</form>';
 }
 
-function allot_bed($link,$offset)
+function allot_bed($link)
 {
 	//echo '<pre>';print_r($_POST);echo '</pre>';	
 
-	echo '<div class="four_column" style=" border-color:green;border-width: thin;border-style: solid">';
-		echo '<div>';
-			echo '<h3 class="text-info">Available Hostel Beds</h3>';
-		echo '</div>';
-		echo '<div>';
-			updown_data($offset);
-		echo '</div>';
-	echo '</div>';
-	
+
+	if(isset($_POST['offset']))
+	{
+		if($_POST['action']=='previous')
+		{
+			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']);
+		}
+		else if($_POST['action']=='next')
+		{
+			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
+		}
+		else
+		{
+			$offset=$_POST['offset'];
+		}
+	}
+	else
+	{
+		$offset=0;
+	}
+	updown_data($offset);
 	$sql='select * from hostel_beds limit '.$offset.','.$GLOBALS['all_records_limit'];
 	//echo $sql;
 	$result=run_query($link,$GLOBALS['database'],$sql);
@@ -249,8 +214,8 @@ function allot_bed($link,$offset)
 			echo '</tr>';
 			$first=false;
 		}
-		view_rows_for_allotment($link,$ar,$offset);
-	}
+		view_rows_for_allotment($link,$ar);
+	}		
 	echo '</table>';
 }
 
@@ -308,11 +273,26 @@ function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_a
 
 }
 
-/*
-function allot_bed_with_edit($link,$offset,$id)
+function allot_bed_with_edit($link,$id)
 {
 	//echo '<pre>';print_r($_POST);echo '</pre>';	
 
+
+	if(isset($_POST['offset']))
+	{
+		if($_POST['action']=='previous')
+		{
+			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']);
+		}
+		else if($_POST['action']=='next')
+		{
+			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
+		}
+	}
+	else
+	{
+		$offset=0;
+	}
 	updown_data($offset);
 	$sql='select * from hostel_beds limit '.$offset.','.$GLOBALS['all_records_limit'];
 	echo $sql;
@@ -332,11 +312,30 @@ function allot_bed_with_edit($link,$offset,$id)
 	}		
 	echo '</table>';
 }
-*/
 
-function ste_id_edit_button_with_offset($link,$tname,$id,$offset)
+
+function ste_id_edit_button_with_offset($link,$tname,$id)
 {
-
+	if(isset($_POST['offset']))
+	{
+		if($_POST['action']=='previous')
+		{
+			$offset=max(0,$_POST['offset']-$GLOBALS['all_records_limit']);
+		}
+		else if($_POST['action']=='next')
+		{
+			$offset=$_POST['offset']+$GLOBALS['all_records_limit'];
+		}
+		else
+		{
+			$offset=$_POST['offset'];
+		}
+	}
+	else
+	{
+		$offset=0;
+	}
+	
 	echo 
 	'<div class="d-inline-block" >
 		<form method=post>
@@ -351,7 +350,7 @@ function ste_id_edit_button_with_offset($link,$tname,$id,$offset)
 	</div>';
 }
 
-function view_rows_for_allotment($link,$ar,$offset)
+function view_rows_for_allotment($link,$ar)
 {
 	foreach($ar as $k =>$v)
 	{
@@ -359,7 +358,7 @@ function view_rows_for_allotment($link,$ar,$offset)
 		{
 			echo '<td>';
 			echo '<span class="round round-0 bg-warning" >'.$v.'</span>';
-			ste_id_edit_button_with_offset($link,'hostel_beds',$v,$offset);
+			ste_id_edit_button_with_offset($link,'hostel_beds',$v);
 			echo '</td>';
 		}
 		else
