@@ -800,7 +800,8 @@ function read_field($link,$tname,$field,$value,$search='no',$readonly='')
 			$sql='select 
 				distinct `'.$fspec['field'].'` , 
 				concat_ws("|",'.$fspec['field_description'].') as description
-			from `'.$fspec['table'].'`';
+			from `'.$fspec['table'].'`
+			order by '.$fspec['field_description'];
 			//echo $sql;
 			mk_select_from_sql_with_description($link,$sql,
 					$fspec['field'],$fspec['fname'],$fspec['fname'],'',$value,$blank='yes',$readonly);

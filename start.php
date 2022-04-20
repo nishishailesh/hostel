@@ -231,7 +231,7 @@ function allot_bed($link,$offset)
 		echo '</div>';
 	echo '</div>';
 	
-	$sql='select * from hostel_beds limit '.$offset.','.$GLOBALS['all_records_limit'];
+	$sql='select * from hostel_beds order by hostel, cast(room_number as unsigned),bed_number limit '.$offset.','.$GLOBALS['all_records_limit'];
 	//echo $sql;
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	
