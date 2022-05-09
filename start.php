@@ -205,7 +205,6 @@ function show_button($tname,$type,$label='')
 	</form></div>';
 }
 
-
 function updown_data($offset)
 {
 	echo '<form method=post>';
@@ -351,15 +350,43 @@ function ste_id_edit_button_with_offset($link,$tname,$id,$offset)
 	</div>';
 }
 
+function ste_id_print_button_with_offset($link,$tname,$id,$offset)
+{
+
+	echo 
+	'<div class="d-inline-block" >
+		<form method=post target=_blank action=print_reports.php>
+			<button class="btn btn-outline-success btn-sm m-0 p-0" name=id value=\''.$id.'\' >
+				<img class="m-0 p-0" src=img/print.png alt=E width="25" height="25">
+			</button>
+			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+			<input type=hidden name=action value=print>
+			<input type=hidden name=tname value=\''.$tname.'\'>
+			<input type=hidden name=offset value=\''.$offset.'\'>
+		</form>
+	</div>';
+}
+
+
 function view_rows_for_allotment($link,$ar,$offset)
 {
 	foreach($ar as $k =>$v)
 	{
 		if($k=='id')
 		{
-			echo '<td>';
+			echo '<style>
+				.ep_btn_grp
+				{
+					display:grid;
+					grid-template-columns: auto auto auto;
+				}
+				
+			</style>';
+			
+			echo '<td class="ep_btn_grp">';
 			echo '<span class="round round-0 bg-warning" >'.$v.'</span>';
 			ste_id_edit_button_with_offset($link,'hostel_beds',$v,$offset);
+			ste_id_print_button_with_offset($link,'hostel_beds',$v,$offset);
 			echo '</td>';
 		}
 		else
@@ -469,7 +496,7 @@ if(in_array($_POST['action'],array('update','display_search','delete')) && in_ar
 */
 //////////////user code ends////////////////
 tail();
-echo '<pre>start:post';print_r($_POST);echo '</pre>';
+//echo '<pre>start:post';print_r($_POST);echo '</pre>';
 //echo '<pre>start:session';print_r($_SESSION);echo '</pre>';
 
 ?>

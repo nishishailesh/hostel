@@ -1198,18 +1198,6 @@ function file_to_str($link,$file)
 	}
 }
 
-echo "
-<script>
-function sync_with_that(me,that_element_id)
-{
-	//alert(me.getAttribute('data-type'));
-	target=document.getElementById(that_element_id);
-	target.value=me.value
-	var event = new Event('change');
-	target.dispatchEvent(event);
-}
-</script>
-";
 
 function show_source_button($link_element_id,$my_value)
 {
@@ -1221,4 +1209,14 @@ function show_source_button($link_element_id,$my_value)
 				value=\''.$my_value.'\'>'.$my_value.'</button>';
 }
 
+function show_button_with_pk($tname,$type,$pk,$label='',$target='',$action='')
+{
+	if(strlen($label)==0){$label=$type;}
+	echo '<div class="d-inline-block" ><form '.$action.' method=post '.$target.' class=print_hide>
+	<button class="btn btn-outline-primary btn-sm" name=action value=\''.$type.'\' >'.$label.'('.$pk.')</button>
+	<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+	<input type=hidden name=tname value=\''.$tname.'\'>
+	<input type=hidden name=id value=\''.$pk.'\'>
+	</form></div>';
+}
 ?>
