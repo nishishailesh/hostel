@@ -2,7 +2,7 @@
 $GLOBALS['nojunk']='';
 require_once 'base/verify_login.php';
 	////////User code below/////////////////////
-require_once("dompdf/dompdf_config.inc.php");
+//require_once("dompdf/dompdf_config.inc.php");
 require_once 'single_table_edit_common.php';
 require_once 'project_specific.php';
 require_once('tcpdf/tcpdf.php');

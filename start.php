@@ -266,14 +266,14 @@ function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_a
 	echo '<div class="two_column_one_by_two bg-light">';
 			foreach($ar as $k =>$v)
 			{
-				if($k=='id')
-				{
-					echo '<div class="border">'.$k.'</div>';
-					echo '<div class="border">';
-						ste_id_update_button($link,$tname,$v);
-					echo '</div>';
-				}
-				elseif(substr(get_field_type($link,$tname,$k),-4)=='blob')
+				//if($k=='id')
+				//{
+				//	echo '<div class="border">'.$k.'</div>';
+				//	echo '<div class="border">';
+				//		ste_id_update_button($link,$tname,$v);
+				//	echo '</div>';
+				//}
+				if(substr(get_field_type($link,$tname,$k),-4)=='blob')
 				{
 					echo '<div class="border">'.$k.'</div>';
 					echo '<div class="border">';
@@ -301,8 +301,16 @@ function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_a
 						read_field($link,$tname,$k,$v);
 					echo '</div>';
 				}
+
 			}
+
+                         echo '<div class="border">id</div>';
+                         echo '<div class="border">';
+	                         ste_id_update_button($link,$tname,$ar['id']);
+                         echo '</div>';
+
 			echo '</div>';
+
 	echo'</form>';
 
 }
