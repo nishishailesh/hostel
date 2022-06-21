@@ -147,6 +147,26 @@ if($_POST['action']=='edit')
 	show_history($link,$_POST['id']);
 }
 
+
+show_crud_button('hostel_beds','search',$label='Search Hostel Beds');
+if($_POST['action']=='search')
+{
+	echo '<h5>'.$_POST['action'].'</h5>';
+	search($link,$_POST['tname']);
+}
+elseif($_POST['action']=='and_select')
+{
+	echo '<h5>'.$_POST['action'].'</h5>';	
+	select_for_hostel_beds($link,$_POST['tname']);
+}
+//3b done
+elseif($_POST['action']=='or_select')
+{
+	echo '<h5>'.$_POST['action'].'</h5>';	
+	select_for_hostel_beds($link,$_POST['tname'],$join='or');
+}
+		
+	
 allot_bed($link,$offset);
 
 
@@ -255,13 +275,14 @@ function allot_bed($link,$offset)
 
 function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_array=array())
 {
+	global $offset;
 	$sql='select * FROM `'.$tname.'` where id=\''.$pk.'\'';
 	//echo $sql;
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	$ar=get_single_row($result);
 	
 	echo '<form method=post class="d-inline" enctype="multipart/form-data">';
-	echo '<input type=hidden name=offset value=\''.$_POST['offset'].'\'>';
+	echo '<input type=hidden name=offset value=\''.$offset.'\'>';
 
 	echo '<div class="two_column_one_by_two bg-light">';
 			foreach($ar as $k =>$v)
@@ -378,6 +399,7 @@ function ste_id_print_button_with_offset($link,$tname,$id,$offset)
 
 function view_rows_for_allotment($link,$ar,$offset)
 {
+	//print_r($ar);
 	foreach($ar as $k =>$v)
 	{
 		if($k=='id')
@@ -437,6 +459,66 @@ function view_rows_for_allotment($link,$ar,$offset)
 	echo '</tr>';
 }
 
+function select_for_hostel_beds($link,$tname,$join='and',$order_by='')
+{
+	global $offset;
+	//echo '<pre>';print_r($_POST);echo '</pre>';	
+	$sql='select * from `'.$tname.'` where ';
+	$w='';
+	foreach($_POST  as $k=>$v)
+	{
+		if(!in_array($k,array('action','tname','session_name')))
+		{
+			if(strlen($v)>0)
+			{
+    			$w=$w.' `'.$k.'` like \'%'.$v.'%\' '.$join.' ';
+			}
+		}
+	}
+	
+	if(strlen($w)>0)
+	{
+		if($join=='and')
+		{
+			$w=substr($w,0,-4);
+		}
+		if($join=='or')
+		{
+			$w=substr($w,0,-3);
+		}
+		$sql=$sql.$w.' '.$order_by;
+	}
+	else
+	{
+		//$sql='select id from `'.$tname.'` order by id desc limit '.$GLOBALS['all_records_limit'];
+		$sql='select * from `'.$tname.'` limit '.$GLOBALS['all_records_limit'];
+	}
+	
+	//echo $sql;
+	
+	$result=run_query($link,$GLOBALS['database'],$sql);
+
+	
+	echo '<table class="table table-striped table-sm table-bordered">';
+	$first=true;
+	while($ar=get_single_row($result))
+	{	
+		if($first==true)
+		{
+			echo '<tr>';
+			foreach ($ar as $k=>$v)
+			{
+				echo '<th>'.$k.'</th>';
+			}
+			echo '</tr>';
+			$first=false;
+		}
+		view_rows_for_allotment($link,$ar,$offset);
+	}
+	echo '</table>';	
+	
+	
+}
 
 
 //required to show student details when delete
@@ -504,7 +586,7 @@ if(in_array($_POST['action'],array('update','display_search','delete')) && in_ar
 */
 //////////////user code ends////////////////
 tail();
-//echo '<pre>start:post';print_r($_POST);echo '</pre>';
+echo '<pre>start:post';print_r($_POST);echo '</pre>';
 //echo '<pre>start:session';print_r($_SESSION);echo '</pre>';
 
 ?>
