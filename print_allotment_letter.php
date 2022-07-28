@@ -42,22 +42,25 @@ ob_start();
 //</head><body>';
 
 
-echo '<!DOCTYPE html><h3>Government Medical College Surat</h3>';
-echo '<h4>EST/Hostel/'.$ar['allowed_course'].'/'.$ar['last_allotment_date'].'</h4>';
+echo '<!DOCTYPE html>';
+echo '<h3 style="text-align:center;">Government Medical College Surat</h3>';
+echo '<h4 style="text-align:center;">New Civil Hospital Campus, Out side Majura gate, Ring Road, Surat -395001</h4>';
+echo '<h4 style="text-align:center;">Fax No.:  0261-2241025		Phone No. : 0261-2244175	E-Mail. : dean.health.surat@gmail.com</h4>';
+echo '<h4 style="text-align:right;">EST/Hostel/'.$ar['allowed_course'].'/Online Entry ID:'.$ar['id'].'/__________/'.$ar['last_allotment_date'].'</h4>';
 
-echo '<p>'.$sar['fullname'].' , 
-		admission year ['.$sar['year_of_admission'].
-		'], is alloted hostel [ '.$ar['hostel'].
-		'] room ['.$ar['room_number']. 
-		'] bed ['.$ar['bed_number']. 
-		'] from date '.$ar['last_allotment_date'].'</p>';
+echo '<p>Name of Student: '.$sar['fullname'].'</p>';
+echo '<p>Mobile: '.$sar['phone'].'</p>';
+echo '<p>Address: '.$sar['address'].'</p>';
+echo '<p>Department: '.$sar['department'].'</p>';
+echo '<p>Year of Admission: '.$sar['year_of_admission'].'</p>';
+echo '<p>Alloted hostel: '.$ar['hostel'].'</p>';
+echo '<p>Alloted room number: '.$ar['room_number'].'</p>';
+echo '<p>Alloted bed number: '.$ar['bed_number'].'</p>';
+echo '<p>Date of Allotment: '.$ar['last_allotment_date'].'</p>';
 
-echo '<table border="1">';
+echo '<br><br><table border="1">';
 echo '<tr><td>Signature of Hostel Superintendent<br></td><td></td></tr>';
 echo '<tr><td>Signature of Student (Order Receipt)<br></td><td></td></tr>';
-echo '<tr><td>Signature of Student (Key Receipt)<br></td><td></td></tr>';
-echo '<tr><td>Signature of Student (Key Return)<br></td><td></td></tr>';
-echo '<tr><td>Date of Key Return<br></td></tr>';
 echo '</table>';
 
 tail();

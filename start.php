@@ -53,7 +53,7 @@ echo '<style>
 		else if($_POST['action']=='nnext')
 		{
 			$offset=$_POST['offset']+$GLOBALS['all_records_limit']*5;
-		}		
+		}
 		else
 		{
 			$offset=$_POST['offset'];
@@ -63,10 +63,10 @@ echo '<style>
 	{
 		$offset=0;
 	}
-	
-	
+
+
 if($_POST['action']=='update')
-{			
+{
 	$chk_sql='select * from hostel_beds where id=\''.$_POST['id'].'\'';
 	$chk_result=run_query($link,$GLOBALS['database'],$chk_sql);
 	$chk_ar=get_single_row($chk_result);
@@ -136,10 +136,6 @@ if($_POST['action']=='update')
 	}
 }
 
-//if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']=='previous'|| $_POST['action']=='nnext' || $_POST['action']=='pprevious')
-//{
-//	allot_bed($link);
-//}
 
 if($_POST['action']=='edit')
 {
@@ -147,29 +143,46 @@ if($_POST['action']=='edit')
 	show_history($link,$_POST['id']);
 }
 
-
 show_crud_button('hostel_beds','search',$label='Search Hostel Beds');
+//show_crud_button('hostel_beds','search_summary',$label='Search Hostel Beds(Summary)');
+
+echo '<form method=post style="display:inline">';
+echo '<input type=hidden name=session_name value=\''.session_name().'\'>';
+echo '<button class="btn btn-outline-primary m-0 p-0" formaction=start.php type=submit formtarget=_blank name=action value=home>( + )</button>';
+echo '</form>';
+
 if($_POST['action']=='search')
 {
 	echo '<h5>'.$_POST['action'].'</h5>';
 	search($link,$_POST['tname']);
 }
+
+if($_POST['action']=='search_summary')
+{
+        echo '<h5>'.$_POST['action'].'</h5>';
+        search_summary($link,$_POST['tname']);
+}
+
 elseif($_POST['action']=='and_select')
 {
-	echo '<h5>'.$_POST['action'].'</h5>';	
-	select_for_hostel_beds($link,$_POST['tname']);
+	echo '<h5>'.$_POST['action'].'</h5>';
+	select_for_hostel_beds($link,$_POST['tname'],$join='and', ' order by hostel,cast(room_number as unsigned),bed_number ' );
 }
+
+elseif($_POST['action']=='and_select_summary')
+{
+        echo '<h5>'.$_POST['action'].'</h5>';
+	select_for_hostel_beds_graphic($link,$_POST['tname'],$join='and', ' order by hostel,cast(room_number as unsigned),bed_number ' );
+}
+
 //3b done
-elseif($_POST['action']=='or_select')
+elseif($_POST['action']=='or_select_summary')
 {
 	echo '<h5>'.$_POST['action'].'</h5>';	
-	select_for_hostel_beds($link,$_POST['tname'],$join='or');
+	select_for_hostel_beds($link,$_POST['tname'],$join='or', ' order by hostel,cast(room_number as unsigned),bed_number ' );
 }
-		
-	
+
 allot_bed($link,$offset);
-
-
 
 function show_history($link,$hostel_bed_id)
 {
@@ -518,6 +531,133 @@ function select_for_hostel_beds($link,$tname,$join='and',$order_by='')
 	echo '</table>';	
 	
 	
+}
+
+
+
+
+function select_for_hostel_beds_graphic($link,$tname,$join='and',$order_by='')
+{
+        global $offset;
+        //echo '<pre>';print_r($_POST);echo '</pre>';   
+        $sql='select * from `'.$tname.'` where ';
+        $w='';
+        foreach($_POST  as $k=>$v)
+        {
+                if(!in_array($k,array('action','tname','session_name')))
+                {
+                        if(strlen($v)>0)
+                        {
+                        $w=$w.' `'.$k.'` like \'%'.$v.'%\' '.$join.' ';
+                        }
+                }
+        }
+
+        if(strlen($w)>0)
+        {
+                if($join=='and')
+                {
+                        $w=substr($w,0,-4);
+                }
+                if($join=='or')
+                {
+                        $w=substr($w,0,-3);
+                }
+                $sql=$sql.$w.' '.$order_by;
+        }
+        else
+        {
+                //$sql='select id from `'.$tname.'` order by id desc limit '.$GLOBALS['all_records_limit'];
+                $sql='select * from `'.$tname.'` limit '.$GLOBALS['all_records_limit'];
+        }
+
+        //echo $sql;
+
+        $result=run_query($link,$GLOBALS['database'],$sql);
+
+
+        $first=true;
+
+	echo '<form method=post target=_blank>
+              <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+              <input type=hidden name=action value=edit>';
+
+        while($ar=get_single_row($result))
+        {
+		if(strlen($ar['alloted_to'])==0)
+		{
+                	echo '<button class="btn btn-danger m-1">'.$ar['hostel'].'<br>Room:'.$ar['room_number'].' Bed:'.$ar['bed_number'].'</button>';
+			echo '<input type=hidden name=id value=\''.$ar['id'].'\'>';
+		}
+		else
+		{
+                	echo '<button class="btn btn-success m-1">'.$ar['hostel'].'<br>Room:'.$ar['room_number'].' Bed:'.$ar['bed_number'].'</button>';
+		}
+
+		//view_rows_for_allotment($link,$ar,$offset);
+        }
+        echo '</form>';
+
+
+}
+
+
+function search_summary($link,$tname)
+{
+        $sql='show columns from `'.$tname.'`';
+        $result=run_query($link,$GLOBALS['database'],$sql);
+        $all_fields=array();
+        while($ar=get_single_row($result))
+        {
+                $all_fields[]=$ar;
+        }
+
+        echo '<form method=post>';
+        echo '<table class="table table-striped table-sm table-bordered">';
+        echo '<tr><td>Action</td>';
+        foreach($all_fields as $field)
+        {
+                echo '<td>'.$field['Field'].'</td>';
+        }
+        echo '<td>Action</td>';
+        echo '</tr>';
+
+        echo '<tr>';
+
+        echo '<td><button class="btn btn-info  btn-sm"  
+                type=submit
+                name=action
+                value=and_select_summary>and Search</button>';
+        echo '<button class="btn btn-info  btn-sm"  
+                type=submit
+                name=action
+                value=or_select_summary>or Search</button></td>';
+
+        foreach($all_fields as $field)
+        {
+                if(substr($field['Type'],-4)=='blob')
+                {
+                        echo '<td>Blob</td>';
+                }
+                else
+                {
+                        echo '<td>';
+                                //'yes' to ensure date dropdown is not displayed
+                                read_field($link,$tname,$field['Field'],'','yes');
+                                //echo '<td><input type=text name=\''.$field['Field'].'\'></td>';
+                        echo '</td>'; 
+
+                }
+        }
+
+
+        echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
+        echo '<input type=hidden name=tname value=\''.$tname.'\'>';
+
+        echo '</tr>';
+
+        echo '</table>';
+        echo '</form>';
 }
 
 
