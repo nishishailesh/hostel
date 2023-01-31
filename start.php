@@ -144,7 +144,8 @@ if($_POST['action']=='edit')
 }
 
 show_crud_button('hostel_beds','search',$label='Search Hostel Beds');
-//show_crud_button('hostel_beds','search_summary',$label='Search Hostel Beds(Summary)');
+//show_crud_button('student','add',$label='Add Student');
+//show_crud_button('hostel','add',$label='Add Hostel Bed');
 
 echo '<form method=post style="display:inline">';
 echo '<input type=hidden name=session_name value=\''.session_name().'\'>';
