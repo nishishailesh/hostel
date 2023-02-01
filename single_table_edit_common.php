@@ -805,11 +805,50 @@ function read_field($link,$tname,$field,$value,$search='no',$readonly='')
 			//echo $sql;
 			mk_select_from_sql_with_description($link,$sql,
 					$fspec['field'],$fspec['fname'],$fspec['fname'],'',$value,$blank='yes',$readonly);
-			//}
-			//else
-			//{
-			//	echo '<input class="w-100" type=text  '.$readonly.' name=\''.$field.'\' value=\''.htmlentities($value,ENT_QUOTES).'\'>';
-			//}			
+				echo '<input placeholder="enter search string" type=text id=\'input_for_'.$fspec['fname'].'\' onchange="find_from_dd(this , \''.$fspec['fname'].'\');">';
+
+
+
+				
+				?>
+
+
+				<script>
+//document.getElementById("alloted_to")[6].text.search(document.getElementById("input_for_alloted_to").value)
+					function  find_from_dd(me,idd)
+					{
+						var option;
+						target=document.getElementById(idd);
+						//alert(me.value);
+						var selectLength = document.getElementById(idd).length;
+						for(i=0; i<selectLength;i++)
+						{
+							if (target[i].text.toLowerCase().search(me.value.toLowerCase())!=-1) 
+							{
+								//alert(target[i].text);
+								//target.selectedIndex=i;
+								//return;
+								option = document.createElement("option");
+								option.text = target[i].text
+								option.value = target[i].value
+								target.prepend(option); 
+								i++;
+							}
+							else
+							{
+
+							}
+						}
+						target.selectedIndex=0;
+						//alert("No record found having >>>>"+me.value+"<<<<");
+					}
+				</script>
+
+
+<?php
+
+
+				
 		}
 		elseif($fspec['ftype']=='date')
 		{
@@ -1145,7 +1184,7 @@ function mk_select_from_array_with_description($name, $select_array,$disabled=''
 		return TRUE;
 	}
 	
-	echo '<select  '.$disabled.' name=\''.$name.'\'>';
+	echo '<select  '.$disabled.'  id=\''.$name.'\' name=\''.$name.'\'>';
 	foreach($select_array as $key=>$value)
 	{
 		//print_r($value);
@@ -1161,7 +1200,6 @@ function mk_select_from_array_with_description($name, $select_array,$disabled=''
 	echo '</select>';	
 	return TRUE;
 }
-
 
 function mk_select_from_array($name, $select_array,$disabled='',$default='')
 {	
