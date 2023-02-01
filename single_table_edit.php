@@ -31,7 +31,7 @@ echo '
 //////////////user code ends////////////////
 tail();
 
-//echo '<pre>';print_r($_POST);print_r($_FILES);echo '</pre>';
+echo '<pre>';print_r($_POST);print_r($_FILES);echo '</pre>';
 
 //////////////Functions///////////////////////
 

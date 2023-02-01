@@ -53,7 +53,7 @@ echo '<style>
 		else if($_POST['action']=='nnext')
 		{
 			$offset=$_POST['offset']+$GLOBALS['all_records_limit']*5;
-		}		
+		}
 		else
 		{
 			$offset=$_POST['offset'];
@@ -63,10 +63,10 @@ echo '<style>
 	{
 		$offset=0;
 	}
-	
-	
+
+
 if($_POST['action']=='update')
-{			
+{
 	$chk_sql='select * from hostel_beds where id=\''.$_POST['id'].'\'';
 	$chk_result=run_query($link,$GLOBALS['database'],$chk_sql);
 	$chk_ar=get_single_row($chk_result);
@@ -136,10 +136,6 @@ if($_POST['action']=='update')
 	}
 }
 
-//if($_POST['action']=='allot_bed' || $_POST['action']=='next' || $_POST['action']=='previous'|| $_POST['action']=='nnext' || $_POST['action']=='pprevious')
-//{
-//	allot_bed($link);
-//}
 
 if($_POST['action']=='edit')
 {
@@ -147,9 +143,53 @@ if($_POST['action']=='edit')
 	show_history($link,$_POST['id']);
 }
 
+show_crud_button('hostel_beds','search',$label='Search Hostel Beds');
+//show_crud_button('student','add',$label='Add Student');
+//show_crud_button('hostel','add',$label='Add Hostel Bed');
+
+echo '<form method=post style="display:inline">';
+echo '<input type=hidden name=session_name value=\''.session_name().'\'>';
+echo '<button class="btn btn-outline-primary m-0 p-0" formaction=single_table_edit.php type=submit formtarget=_blank name=action value=manage>Manage Student and Hostel Rooms</button>';
+echo '</form>';
+
+
+echo '<form method=post style="display:inline">';
+echo '<input type=hidden name=session_name value=\''.session_name().'\'>';
+echo '<button class="btn btn-outline-primary m-0 p-0" formaction=start.php type=submit formtarget=_blank name=action value=home>( + )</button>';
+echo '</form>';
+
+if($_POST['action']=='search')
+{
+	echo '<h5>'.$_POST['action'].'</h5>';
+	search($link,$_POST['tname']);
+}
+
+if($_POST['action']=='search_summary')
+{
+        echo '<h5>'.$_POST['action'].'</h5>';
+        search_summary($link,$_POST['tname']);
+}
+
+elseif($_POST['action']=='and_select')
+{
+	echo '<h5>'.$_POST['action'].'</h5>';
+	select_for_hostel_beds($link,$_POST['tname'],$join='and', ' order by hostel,cast(room_number as unsigned),bed_number ' );
+}
+
+elseif($_POST['action']=='and_select_summary')
+{
+        echo '<h5>'.$_POST['action'].'</h5>';
+	select_for_hostel_beds_graphic($link,$_POST['tname'],$join='and', ' order by hostel,cast(room_number as unsigned),bed_number ' );
+}
+
+//3b done
+elseif($_POST['action']=='or_select_summary')
+{
+	echo '<h5>'.$_POST['action'].'</h5>';	
+	select_for_hostel_beds($link,$_POST['tname'],$join='or', ' order by hostel,cast(room_number as unsigned),bed_number ' );
+}
+
 allot_bed($link,$offset);
-
-
 
 function show_history($link,$hostel_bed_id)
 {
@@ -205,7 +245,6 @@ function show_button($tname,$type,$label='')
 	</form></div>';
 }
 
-
 function updown_data($offset)
 {
 	echo '<form method=post>';
@@ -256,25 +295,26 @@ function allot_bed($link,$offset)
 
 function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_array=array())
 {
+	global $offset;
 	$sql='select * FROM `'.$tname.'` where id=\''.$pk.'\'';
 	//echo $sql;
 	$result=run_query($link,$GLOBALS['database'],$sql);
 	$ar=get_single_row($result);
 	
 	echo '<form method=post class="d-inline" enctype="multipart/form-data">';
-	echo '<input type=hidden name=offset value=\''.$_POST['offset'].'\'>';
+	echo '<input type=hidden name=offset value=\''.$offset.'\'>';
 
 	echo '<div class="two_column_one_by_two bg-light">';
 			foreach($ar as $k =>$v)
 			{
-				if($k=='id')
-				{
-					echo '<div class="border">'.$k.'</div>';
-					echo '<div class="border">';
-						ste_id_update_button($link,$tname,$v);
-					echo '</div>';
-				}
-				elseif(substr(get_field_type($link,$tname,$k),-4)=='blob')
+				//if($k=='id')
+				//{
+				//	echo '<div class="border">'.$k.'</div>';
+				//	echo '<div class="border">';
+				//		ste_id_update_button($link,$tname,$v);
+				//	echo '</div>';
+				//}
+				if(substr(get_field_type($link,$tname,$k),-4)=='blob')
 				{
 					echo '<div class="border">'.$k.'</div>';
 					echo '<div class="border">';
@@ -302,8 +342,16 @@ function edit_with_readonly_view_batch($link,$tname,$pk,$header='no',$readonly_a
 						read_field($link,$tname,$k,$v);
 					echo '</div>';
 				}
+
 			}
+
+                         echo '<div class="border">id</div>';
+                         echo '<div class="border">';
+	                         ste_id_update_button($link,$tname,$ar['id']);
+                         echo '</div>';
+
 			echo '</div>';
+
 	echo'</form>';
 
 }
@@ -351,15 +399,44 @@ function ste_id_edit_button_with_offset($link,$tname,$id,$offset)
 	</div>';
 }
 
+function ste_id_print_button_with_offset($link,$tname,$id,$offset)
+{
+
+	echo 
+	'<div class="d-inline-block" >
+		<form method=post target=_blank action=print_reports.php>
+			<button class="btn btn-outline-success btn-sm m-0 p-0" name=id value=\''.$id.'\' >
+				<img class="m-0 p-0" src=img/print.png alt=E width="25" height="25">
+			</button>
+			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+			<input type=hidden name=action value=print>
+			<input type=hidden name=tname value=\''.$tname.'\'>
+			<input type=hidden name=offset value=\''.$offset.'\'>
+		</form>
+	</div>';
+}
+
+
 function view_rows_for_allotment($link,$ar,$offset)
 {
+	//print_r($ar);
 	foreach($ar as $k =>$v)
 	{
 		if($k=='id')
 		{
-			echo '<td>';
+			echo '<style>
+				.ep_btn_grp
+				{
+					display:grid;
+					grid-template-columns: auto auto auto;
+				}
+				
+			</style>';
+			
+			echo '<td class="ep_btn_grp">';
 			echo '<span class="round round-0 bg-warning" >'.$v.'</span>';
 			ste_id_edit_button_with_offset($link,'hostel_beds',$v,$offset);
+			ste_id_print_button_with_offset($link,'hostel_beds',$v,$offset);
 			echo '</td>';
 		}
 		else
@@ -402,6 +479,193 @@ function view_rows_for_allotment($link,$ar,$offset)
 	echo '</tr>';
 }
 
+function select_for_hostel_beds($link,$tname,$join='and',$order_by='')
+{
+	global $offset;
+	//echo '<pre>';print_r($_POST);echo '</pre>';	
+	$sql='select * from `'.$tname.'` where ';
+	$w='';
+	foreach($_POST  as $k=>$v)
+	{
+		if(!in_array($k,array('action','tname','session_name')))
+		{
+			if(strlen($v)>0)
+			{
+    			$w=$w.' `'.$k.'` like \'%'.$v.'%\' '.$join.' ';
+			}
+		}
+	}
+	
+	if(strlen($w)>0)
+	{
+		if($join=='and')
+		{
+			$w=substr($w,0,-4);
+		}
+		if($join=='or')
+		{
+			$w=substr($w,0,-3);
+		}
+		$sql=$sql.$w.' '.$order_by;
+	}
+	else
+	{
+		//$sql='select id from `'.$tname.'` order by id desc limit '.$GLOBALS['all_records_limit'];
+		$sql='select * from `'.$tname.'` limit '.$GLOBALS['all_records_limit'];
+	}
+	
+	//echo $sql;
+	
+	$result=run_query($link,$GLOBALS['database'],$sql);
+
+	
+	echo '<table class="table table-striped table-sm table-bordered">';
+	$first=true;
+	while($ar=get_single_row($result))
+	{	
+		if($first==true)
+		{
+			echo '<tr>';
+			foreach ($ar as $k=>$v)
+			{
+				echo '<th>'.$k.'</th>';
+			}
+			echo '</tr>';
+			$first=false;
+		}
+		view_rows_for_allotment($link,$ar,$offset);
+	}
+	echo '</table>';	
+	
+	
+}
+
+
+
+
+function select_for_hostel_beds_graphic($link,$tname,$join='and',$order_by='')
+{
+        global $offset;
+        //echo '<pre>';print_r($_POST);echo '</pre>';   
+        $sql='select * from `'.$tname.'` where ';
+        $w='';
+        foreach($_POST  as $k=>$v)
+        {
+                if(!in_array($k,array('action','tname','session_name')))
+                {
+                        if(strlen($v)>0)
+                        {
+                        $w=$w.' `'.$k.'` like \'%'.$v.'%\' '.$join.' ';
+                        }
+                }
+        }
+
+        if(strlen($w)>0)
+        {
+                if($join=='and')
+                {
+                        $w=substr($w,0,-4);
+                }
+                if($join=='or')
+                {
+                        $w=substr($w,0,-3);
+                }
+                $sql=$sql.$w.' '.$order_by;
+        }
+        else
+        {
+                //$sql='select id from `'.$tname.'` order by id desc limit '.$GLOBALS['all_records_limit'];
+                $sql='select * from `'.$tname.'` limit '.$GLOBALS['all_records_limit'];
+        }
+
+        //echo $sql;
+
+        $result=run_query($link,$GLOBALS['database'],$sql);
+
+
+        $first=true;
+
+	echo '<form method=post target=_blank>
+              <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+              <input type=hidden name=action value=edit>';
+
+        while($ar=get_single_row($result))
+        {
+		if(strlen($ar['alloted_to'])==0)
+		{
+                	echo '<button class="btn btn-danger m-1">'.$ar['hostel'].'<br>Room:'.$ar['room_number'].' Bed:'.$ar['bed_number'].'</button>';
+			echo '<input type=hidden name=id value=\''.$ar['id'].'\'>';
+		}
+		else
+		{
+                	echo '<button class="btn btn-success m-1">'.$ar['hostel'].'<br>Room:'.$ar['room_number'].' Bed:'.$ar['bed_number'].'</button>';
+		}
+
+		//view_rows_for_allotment($link,$ar,$offset);
+        }
+        echo '</form>';
+
+
+}
+
+
+function search_summary($link,$tname)
+{
+        $sql='show columns from `'.$tname.'`';
+        $result=run_query($link,$GLOBALS['database'],$sql);
+        $all_fields=array();
+        while($ar=get_single_row($result))
+        {
+                $all_fields[]=$ar;
+        }
+
+        echo '<form method=post>';
+        echo '<table class="table table-striped table-sm table-bordered">';
+        echo '<tr><td>Action</td>';
+        foreach($all_fields as $field)
+        {
+                echo '<td>'.$field['Field'].'</td>';
+        }
+        echo '<td>Action</td>';
+        echo '</tr>';
+
+        echo '<tr>';
+
+        echo '<td><button class="btn btn-info  btn-sm"  
+                type=submit
+                name=action
+                value=and_select_summary>and Search</button>';
+        echo '<button class="btn btn-info  btn-sm"  
+                type=submit
+                name=action
+                value=or_select_summary>or Search</button></td>';
+
+        foreach($all_fields as $field)
+        {
+                if(substr($field['Type'],-4)=='blob')
+                {
+                        echo '<td>Blob</td>';
+                }
+                else
+                {
+                        echo '<td>';
+                                //'yes' to ensure date dropdown is not displayed
+                                read_field($link,$tname,$field['Field'],'','yes');
+                                //echo '<td><input type=text name=\''.$field['Field'].'\'></td>';
+                        echo '</td>'; 
+
+                }
+        }
+
+
+        echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
+        echo '<input type=hidden name=tname value=\''.$tname.'\'>';
+
+        echo '</tr>';
+
+        echo '</table>';
+        echo '</form>';
+}
 
 
 //required to show student details when delete

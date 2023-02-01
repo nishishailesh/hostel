@@ -491,14 +491,8 @@ function edit($link,$tname,$pk,$header='no')
 	echo '<div class="two_column_one_by_two bg-light">';
 			foreach($ar as $k =>$v)
 			{
-				if($k=='id')
-				{
-					echo '<div class="border">'.$k.'</div>';
-					echo '<div class="border">';
-						ste_id_update_button($link,$tname,$v);
-					echo '</div>';
-				}
-				elseif(substr(get_field_type($link,$tname,$k),-4)=='blob')
+				
+				if(substr(get_field_type($link,$tname,$k),-4)=='blob')
 				{
 					echo '<div class="border">'.$k.'</div>';
 					echo '<div class="border">';
@@ -512,6 +506,10 @@ function edit($link,$tname,$pk,$header='no')
 						echo $v;
 					echo '</div>';
 				}
+				elseif($k=='id')
+				{
+
+				}
 				else
 				{
 					echo '<div class="border">'.$k.'</div>';
@@ -519,8 +517,16 @@ function edit($link,$tname,$pk,$header='no')
 						read_field($link,$tname,$k,$v);
 					echo '</div>';
 				}
+							
+
 			}
-			echo '</div>';
+			
+			echo '<div class="border">ID</div>';
+			echo '<div class="border">';
+			ste_id_update_button($link,$tname,$pk);
+			echo '</div>';			
+			
+		echo '</div>';
 	echo'</form>';
 
 }
@@ -849,6 +855,8 @@ function read_field($link,$tname,$field,$value,$search='no',$readonly='')
 
 
 				
+
+			echo '<input placeholder="enter search string" type=text id=\'input_for_'.$fspec['fname'].'\' onchange="find_from_dd(this , \''.$fspec['fname'].'\');">';
 		}
 		elseif($fspec['ftype']=='date')
 		{
@@ -1171,7 +1179,7 @@ function mk_select_from_array_with_description($name, $select_array,$disabled=''
 		{
 			if($value[0]==$default)
 			{
-				echo '<input type=hidden '.$readonly.' name=\''.$name.'\' value=\''.$default.'\'>';
+				echo '<input type=hidden '.$readonly.' name=\''.$name.'\' id=\''.$name.'\'  value=\''.$default.'\'>';
 				echo $value[1].'('.$value[0].')';
 			}
 			else
@@ -1184,7 +1192,11 @@ function mk_select_from_array_with_description($name, $select_array,$disabled=''
 		return TRUE;
 	}
 	
+<<<<<<< HEAD
 	echo '<select  '.$disabled.'  id=\''.$name.'\' name=\''.$name.'\'>';
+=======
+	echo '<select  '.$disabled.'  id=\''.$name.'\'   name=\''.$name.'\'>';
+>>>>>>> 189467e56f8b51654cd86644b4c0c4baf6dcc2ea
 	foreach($select_array as $key=>$value)
 	{
 		//print_r($value);
@@ -1236,18 +1248,6 @@ function file_to_str($link,$file)
 	}
 }
 
-echo "
-<script>
-function sync_with_that(me,that_element_id)
-{
-	//alert(me.getAttribute('data-type'));
-	target=document.getElementById(that_element_id);
-	target.value=me.value
-	var event = new Event('change');
-	target.dispatchEvent(event);
-}
-</script>
-";
 
 function show_source_button($link_element_id,$my_value)
 {
@@ -1259,4 +1259,14 @@ function show_source_button($link_element_id,$my_value)
 				value=\''.$my_value.'\'>'.$my_value.'</button>';
 }
 
+function show_button_with_pk($tname,$type,$pk,$label='',$target='',$action='')
+{
+	if(strlen($label)==0){$label=$type;}
+	echo '<div class="d-inline-block" ><form '.$action.' method=post '.$target.' class=print_hide>
+	<button class="btn btn-outline-primary btn-sm" name=action value=\''.$type.'\' >'.$label.'('.$pk.')</button>
+	<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+	<input type=hidden name=tname value=\''.$tname.'\'>
+	<input type=hidden name=id value=\''.$pk.'\'>
+	</form></div>';
+}
 ?>
