@@ -149,6 +149,12 @@ show_crud_button('hostel_beds','search',$label='Search Hostel Beds');
 
 echo '<form method=post style="display:inline">';
 echo '<input type=hidden name=session_name value=\''.session_name().'\'>';
+echo '<button class="btn btn-outline-primary m-0 p-0" formaction=single_table_edit.php type=submit formtarget=_blank name=action value=manage>Manage Student and Hostel Rooms</button>';
+echo '</form>';
+
+
+echo '<form method=post style="display:inline">';
+echo '<input type=hidden name=session_name value=\''.session_name().'\'>';
 echo '<button class="btn btn-outline-primary m-0 p-0" formaction=start.php type=submit formtarget=_blank name=action value=home>( + )</button>';
 echo '</form>';
 

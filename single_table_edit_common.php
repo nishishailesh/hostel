@@ -491,14 +491,8 @@ function edit($link,$tname,$pk,$header='no')
 	echo '<div class="two_column_one_by_two bg-light">';
 			foreach($ar as $k =>$v)
 			{
-				if($k=='id')
-				{
-					echo '<div class="border">'.$k.'</div>';
-					echo '<div class="border">';
-						ste_id_update_button($link,$tname,$v);
-					echo '</div>';
-				}
-				elseif(substr(get_field_type($link,$tname,$k),-4)=='blob')
+				
+				if(substr(get_field_type($link,$tname,$k),-4)=='blob')
 				{
 					echo '<div class="border">'.$k.'</div>';
 					echo '<div class="border">';
@@ -512,6 +506,10 @@ function edit($link,$tname,$pk,$header='no')
 						echo $v;
 					echo '</div>';
 				}
+				elseif($k=='id')
+				{
+
+				}
 				else
 				{
 					echo '<div class="border">'.$k.'</div>';
@@ -519,8 +517,16 @@ function edit($link,$tname,$pk,$header='no')
 						read_field($link,$tname,$k,$v);
 					echo '</div>';
 				}
+							
+
 			}
-			echo '</div>';
+			
+			echo '<div class="border">ID</div>';
+			echo '<div class="border">';
+			ste_id_update_button($link,$tname,$pk);
+			echo '</div>';			
+			
+		echo '</div>';
 	echo'</form>';
 
 }
