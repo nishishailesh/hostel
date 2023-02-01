@@ -810,10 +810,9 @@ function read_field($link,$tname,$field,$value,$search='no',$readonly='')
 			order by '.$fspec['field_description'];
 			//echo $sql;
 			mk_select_from_sql_with_description($link,$sql,
-					$fspec['field'],$fspec['fname'],$fspec['fname'],'',$value,$blank='yes',$readonly);
+													$fspec['field'],$fspec['fname'],$fspec['fname'],
+													'',$value,$blank='yes',$readonly);
 				echo '<input placeholder="enter search string" type=text id=\'input_for_'.$fspec['fname'].'\' onchange="find_from_dd(this , \''.$fspec['fname'].'\');">';
-
-
 
 				
 				?>
@@ -856,7 +855,6 @@ function read_field($link,$tname,$field,$value,$search='no',$readonly='')
 
 				
 
-			echo '<input placeholder="enter search string" type=text id=\'input_for_'.$fspec['fname'].'\' onchange="find_from_dd(this , \''.$fspec['fname'].'\');">';
 		}
 		elseif($fspec['ftype']=='date')
 		{
@@ -1192,11 +1190,8 @@ function mk_select_from_array_with_description($name, $select_array,$disabled=''
 		return TRUE;
 	}
 	
-<<<<<<< HEAD
 	echo '<select  '.$disabled.'  id=\''.$name.'\' name=\''.$name.'\'>';
-=======
-	echo '<select  '.$disabled.'  id=\''.$name.'\'   name=\''.$name.'\'>';
->>>>>>> 189467e56f8b51654cd86644b4c0c4baf6dcc2ea
+
 	foreach($select_array as $key=>$value)
 	{
 		//print_r($value);
