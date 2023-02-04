@@ -1264,4 +1264,6 @@ function show_button_with_pk($tname,$type,$pk,$label='',$target='',$action='')
 	<input type=hidden name=id value=\''.$pk.'\'>
 	</form></div>';
 }
+
+
 ?>
